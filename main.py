@@ -1,29 +1,50 @@
 from fastapi import FastAPI
-import joblib
 import pandas as pd
 import numpy as np
+import joblib
+from pydantic import BaseModel
 
-# Initialise API
-app = FastAPI(title="Telecom Customer Churn Prediction API")
+# 全局客户数据模型
+class CustomerData(BaseModel):
+    gender: str
+    SeniorCitizen: int
+    Partner: str
+    Dependents: str
+    tenure: int
+    PhoneService: str
+    MultipleLines: str
+    InternetService: str
+    OnlineSecurity: str
+    OnlineBackup: str
+    DeviceProtection: str
+    TechSupport: str
+    StreamingTV: str
+    StreamingMovies: str
+    Contract: str
+    PaperlessBilling: str
+    PaymentMethod: str
+    MonthlyCharges: float
+    TotalCharges: float
 
-# Load saved model & preprocessing tools
+# 加载模型
 model = joblib.load("churn_rf_model.joblib")
 encoder = joblib.load("encoder.joblib")
 scaler = joblib.load("scaler.joblib")
-cat_cols = ['gender','SeniorCitizen','Partner','Dependents','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod']
-num_cols = ['tenure','MonthlyCharges','TotalCharges']
 
-# Health check endpoint
+cat_cols = ["gender","Partner","Dependents","PhoneService","MultipleLines","InternetService","OnlineSecurity","OnlineBackup","DeviceProtection","TechSupport","StreamingTV","StreamingMovies","Contract","PaperlessBilling","PaymentMethod"]
+num_cols = ["tenure","MonthlyCharges","TotalCharges"]
+
+app = FastAPI(title="Telecom Customer Churn Prediction API")
+
 @app.get("/health")
-def health_check():
-    return {"status": "service running normally, model loaded successfully"}
+def health():
+    return {"status":"service running normally, model loaded successfully"}
 
-# Single customer prediction endpoint
 @app.post("/predict")
-def predict(customer_data: dict):
+def predict(customer_data: CustomerData):
     try:
-        # 下面全部是原来的业务代码，原样保留，整体缩进一层
-        df_input = pd.DataFrame([customer_data])
+        data = customer_data.dict()
+        df_input = pd.DataFrame([data])
         # Encode categorical features
         cat_data = encoder.transform(df_input[cat_cols])
         cat_df = pd.DataFrame(cat_data, columns=encoder.get_feature_names_out(cat_cols))
@@ -48,5 +69,4 @@ def predict(customer_data: dict):
             "risk_level": risk
         }
     except Exception as err:
-        # 报错时返回详细错误信息，不再只显示 Internal Server Error
         return {"error_detail": str(err)}, 500
