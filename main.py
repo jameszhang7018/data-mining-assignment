@@ -5,6 +5,8 @@ import joblib
 from pydantic import BaseModel
 
 # 全局客户数据模型
+
+
 class CustomerData(BaseModel):
     gender: str
     SeniorCitizen: int
@@ -27,6 +29,7 @@ class CustomerData(BaseModel):
     TotalCharges: float
 
     class Config:
+        # 给Swagger绑定合法默认示例
         schema_extra = {
             "example": {
                 "gender": "Female",
