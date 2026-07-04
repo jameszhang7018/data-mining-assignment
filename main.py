@@ -54,6 +54,7 @@ class CustomerData(BaseModel):
 # 加载模型
 model = joblib.load("churn_rf_model.joblib")
 encoder = joblib.load("encoder.joblib")
+encoder.set_params(handle_unknown="ignore")
 scaler = joblib.load("scaler.joblib")
 
 cat_cols = ["gender","Partner","Dependents","PhoneService","MultipleLines","InternetService","OnlineSecurity","OnlineBackup","DeviceProtection","TechSupport","StreamingTV","StreamingMovies","Contract","PaperlessBilling","PaymentMethod"]
